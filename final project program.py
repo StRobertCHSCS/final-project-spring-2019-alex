@@ -66,7 +66,6 @@ class MyGame(arcade.Window):
                 self.player_sprite.angle = 270
         elif x > self.player_sprite.center_x:
             self.player_sprite.angle = degrees(atan((y - self.player_sprite.center_y)/(x - self.player_sprite.center_x)))
-            print(degrees(atan((y - self.player_sprite.center_y)/(x - self.player_sprite.center_x))))
         else:
             self.player_sprite.angle = 180 + degrees(atan((y - self.player_sprite.center_y)/(x - self.player_sprite.center_x)))
 
@@ -77,13 +76,20 @@ class MyGame(arcade.Window):
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
-            arrow = arcade.Sprite('arrow.png', 0.2)
+            arrow = arcade.Sprite('image/arrow.png', 0.2)
 
-            self.player_bullet_list.append(self.player_bullet_sprite)
+            arrow.angle = self.player_sprite.angle
+
+            arrow.center_x = self.player_sprite.center_x + 10 * cos(radians(arrow.angle))
+            arrow.center_y = self.player_sprite.center_y + 10 * sin(radians(arrow.angle))
+
+            self.player_bullet_list.append(arrow)
 
     def update(self, delta_time):
         self.player_list.update()
-        self.player_bullet_list.update()
+        for bullet in self.player_bullet_list:
+            bullet.center_x += 10 * cos(radians(bullet.angle))
+            bullet.center_y += 10 * sin(radians(bullet.angle))
 
 def main():
     window = MyGame()
