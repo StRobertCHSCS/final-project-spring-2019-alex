@@ -4,6 +4,16 @@ from math import*
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 800
 
+map = [
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
 class MyGame(arcade.Window):
 
     def __init__(self):
@@ -17,6 +27,17 @@ class MyGame(arcade.Window):
         self.enemy_bullet_list = None
         self.wall_list = None
 
+        # map
+        self.map = [
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
         # player sprite
         self.player_sprite = None
 
@@ -25,6 +46,11 @@ class MyGame(arcade.Window):
 
         # physics engine
         self.physics_engine = None
+
+        # shooting variables
+        self.shoot = False
+        self.reload_speed = 0.3 * 60
+        self.reload = 0
 
         # manage the view point
         self.view_left = 0
@@ -36,7 +62,7 @@ class MyGame(arcade.Window):
     def setup(self):
 
         # set background color
-        arcade.set_background_color(arcade.color.WHITE)
+        arcade.set_background_color(arcade.color.AMAZON)
 
         # Reset the view port
         self.view_left = 0
@@ -58,6 +84,15 @@ class MyGame(arcade.Window):
         self.player_sprite.center_y = 400
         self.player_list.append(self.player_sprite)
 
+        for i in range(len(self.map)):
+            if self.map[i] == 1:
+                wall = arcade.Sprite('image/wall.png', 1)
+                wall.center_x = i%10*100 + 50
+                wall.center_y = i // 10 * 100 + 50
+                self.wall_list.append(wall)
+                print(i // 10 * 100 + 50)
+                print(i)
+
     def on_mouse_motion(self, x, y, dx, dy):
         if x - self.player_sprite.center_x == 0:
             if y > self.player_sprite.center_y:
@@ -73,10 +108,22 @@ class MyGame(arcade.Window):
         arcade.start_render()
         self.player_list.draw()
         self.player_bullet_list.draw()
+        self.wall_list.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
+            self.shoot = True
+
+    def on_mouse_release(self, x, y, button, modifiers):
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            self.shoot = False
+
+    def update(self, delta_time):
+        self.player_list.update()
+
+        if self.shoot and self.reload <= 0:
             arrow = arcade.Sprite('image/arrow.png', 0.2)
+            self.reload += self.reload_speed
 
             arrow.angle = self.player_sprite.angle
 
@@ -85,8 +132,9 @@ class MyGame(arcade.Window):
 
             self.player_bullet_list.append(arrow)
 
-    def update(self, delta_time):
-        self.player_list.update()
+        if self.reload > 0:
+            self.reload -= 1
+
         for bullet in self.player_bullet_list:
             bullet.center_x += 10 * cos(radians(bullet.angle))
             bullet.center_y += 10 * sin(radians(bullet.angle))
