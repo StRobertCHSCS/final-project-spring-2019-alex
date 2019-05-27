@@ -20,6 +20,9 @@ class MyGame(arcade.Window):
         # player sprite
         self.player_sprite = None
 
+        # bullet sprite
+        self.player_bullet_sprite = None
+
         # physics engine
         self.physics_engine = None
 
@@ -61,16 +64,26 @@ class MyGame(arcade.Window):
                 self.player_sprite.angle = 90
             else:
                 self.player_sprite.angle = 270
-        else:
+        elif x > self.player_sprite.center_x:
             self.player_sprite.angle = degrees(atan((y - self.player_sprite.center_y)/(x - self.player_sprite.center_x)))
             print(degrees(atan((y - self.player_sprite.center_y)/(x - self.player_sprite.center_x))))
+        else:
+            self.player_sprite.angle = 180 + degrees(atan((y - self.player_sprite.center_y)/(x - self.player_sprite.center_x)))
 
     def on_draw(self):
         arcade.start_render()
         self.player_list.draw()
+        self.player_bullet_list.draw()
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            arrow = arcade.Sprite('arrow.png', 0.2)
+
+            self.player_bullet_list.append(self.player_bullet_sprite)
 
     def update(self, delta_time):
         self.player_list.update()
+        self.player_bullet_list.update()
 
 def main():
     window = MyGame()
