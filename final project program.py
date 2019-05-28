@@ -20,14 +20,16 @@ class MyGame(arcade.Window):
 
         # map
         self.map = [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.map_length = 20
+        self.map_width = 8
 
         # player sprite
         self.player_sprite = None
@@ -49,6 +51,12 @@ class MyGame(arcade.Window):
 
         # setup the score
         self.score = 0
+
+        # moving variables
+        self.move_up = False
+        self.move_down = False
+        self.move_right = False
+        self.move_left = False
 
     def setup(self):
 
@@ -74,20 +82,21 @@ class MyGame(arcade.Window):
         self.player_sprite.center_x = 500
         self.player_sprite.center_y = 400
         self.player_list.append(self.player_sprite)
-
+        self.player_speed = 1 / 60
+        '''
         # read the map
-        map = arcade.read_tiled_map('map.tmx', 1)
+        map = arcade.read_tiled_map("map.tmx", 1)
         self.wall_list = arcade.generate_sprites(map, 'map', 1)
         print(self.wall_list)
-
-        '''for i in range(len(self.map)):
+        '''
+        for i in range(len(self.map)):
             if self.map[i] == 1:
                 wall = arcade.Sprite('image/wall.png', 1)
-                wall.center_x = i%10*100 + 50
-                wall.center_y = i // 10 * 100 + 50
+                wall.center_x = i % self.map_length * 100 + 50
+                wall.center_y = i // self.map_length * 100 + 50
                 self.wall_list.append(wall)
                 print(i // 10 * 100 + 50)
-                print(i)'''
+                print(i)
 
         self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
@@ -116,15 +125,15 @@ class MyGame(arcade.Window):
         if button == arcade.MOUSE_BUTTON_LEFT:
             self.shoot = False
 
-    def on_key_press(self, symbol, modifiers):
+    def on_key_press(self, key, modifiers):
         if key == arcade.key.W:
-            pass
+            self.move_up = True
         if key == arcade.key.A:
-            pass
+            self.move_left = True
         if key == arcade.key.S:
-            pass
+            self.move_down = True
         if key == arcade.key.D:
-            pass
+            self.move_right = True
 
     def update(self, delta_time):
         self.player_list.update()
@@ -146,6 +155,20 @@ class MyGame(arcade.Window):
         for bullet in self.player_bullet_list:
             bullet.center_x += 15 * cos(radians(bullet.angle))
             bullet.center_y += 15 * sin(radians(bullet.angle))
+
+        for wall in self.wall_list:
+            wall_hit_list = arcade.check_for_collision_with_list(wall, self.player_bullet_list)
+            for bullet in wall_hit_list:
+                bullet.kill()
+
+        if self.move_up:
+            self.view_bottom += self.player_speed
+        if self.move_down:
+            self.view_bottom -= self.player_speed
+        if self.move_left:
+            self.view_left
+
+
 
 
 def main():
