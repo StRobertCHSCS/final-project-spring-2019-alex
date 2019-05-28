@@ -4,15 +4,6 @@ from math import*
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 800
 
-map = [
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
 class MyGame(arcade.Window):
 
@@ -84,14 +75,21 @@ class MyGame(arcade.Window):
         self.player_sprite.center_y = 400
         self.player_list.append(self.player_sprite)
 
-        for i in range(len(self.map)):
+        # read the map
+        map = arcade.read_tiled_map('map.tmx', 1)
+        self.wall_list = arcade.generate_sprites(map, 'map', 1)
+        print(self.wall_list)
+
+        '''for i in range(len(self.map)):
             if self.map[i] == 1:
                 wall = arcade.Sprite('image/wall.png', 1)
                 wall.center_x = i%10*100 + 50
                 wall.center_y = i // 10 * 100 + 50
                 self.wall_list.append(wall)
                 print(i // 10 * 100 + 50)
-                print(i)
+                print(i)'''
+
+        self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
     def on_mouse_motion(self, x, y, dx, dy):
         if x - self.player_sprite.center_x == 0:
@@ -118,6 +116,16 @@ class MyGame(arcade.Window):
         if button == arcade.MOUSE_BUTTON_LEFT:
             self.shoot = False
 
+    def on_key_press(self, symbol, modifiers):
+        if key == arcade.key.W:
+            pass
+        if key == arcade.key.A:
+            pass
+        if key == arcade.key.S:
+            pass
+        if key == arcade.key.D:
+            pass
+
     def update(self, delta_time):
         self.player_list.update()
 
@@ -136,12 +144,14 @@ class MyGame(arcade.Window):
             self.reload -= 1
 
         for bullet in self.player_bullet_list:
-            bullet.center_x += 10 * cos(radians(bullet.angle))
-            bullet.center_y += 10 * sin(radians(bullet.angle))
+            bullet.center_x += 15 * cos(radians(bullet.angle))
+            bullet.center_y += 15 * sin(radians(bullet.angle))
+
 
 def main():
     window = MyGame()
     window.setup()
     arcade.run()
+
 
 main()
