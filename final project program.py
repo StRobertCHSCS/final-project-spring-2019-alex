@@ -53,6 +53,7 @@ class MyGame(arcade.Window):
         self.score = 0
 
         # moving variables
+        self.player_speed = 1.5 / 60 * 100
         self.move_up = False
         self.move_down = False
         self.move_right = False
@@ -82,7 +83,7 @@ class MyGame(arcade.Window):
         self.player_sprite.center_x = 500
         self.player_sprite.center_y = 400
         self.player_list.append(self.player_sprite)
-        self.player_speed = 1 / 60
+
         '''
         # read the map
         map = arcade.read_tiled_map("map.tmx", 1)
@@ -101,15 +102,15 @@ class MyGame(arcade.Window):
         self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
     def on_mouse_motion(self, x, y, dx, dy):
-        if x - self.player_sprite.center_x == 0:
-            if y > self.player_sprite.center_y:
+        if x + self.view_left - self.player_sprite.center_x == 0:
+            if y + self.view_bottom > self.player_sprite.center_y:
                 self.player_sprite.angle = 90
             else:
                 self.player_sprite.angle = 270
-        elif x > self.player_sprite.center_x:
-            self.player_sprite.angle = degrees(atan((y - self.player_sprite.center_y)/(x - self.player_sprite.center_x)))
+        elif x + self.view_left > self.player_sprite.center_x:
+            self.player_sprite.angle = degrees(atan((y + self.view_bottom - self.player_sprite.center_y)/(x + self.view_left - self.player_sprite.center_x)))
         else:
-            self.player_sprite.angle = 180 + degrees(atan((y - self.player_sprite.center_y)/(x - self.player_sprite.center_x)))
+            self.player_sprite.angle = 180 + degrees(atan((y + self.view_bottom - self.player_sprite.center_y)/(x + self.view_left - self.player_sprite.center_x)))
 
     def on_draw(self):
         arcade.start_render()
@@ -135,8 +136,21 @@ class MyGame(arcade.Window):
         if key == arcade.key.D:
             self.move_right = True
 
+    def on_key_release(self, key, modifiers):
+        if key == arcade.key.W:
+            self.move_up = False
+        if key == arcade.key.A:
+            self.move_left = False
+        if key == arcade.key.S:
+            self.move_down = False
+        if key == arcade.key.D:
+            self.move_right = False
+
     def update(self, delta_time):
+
         self.player_list.update()
+
+        self.physics_engine.update()
 
         if self.shoot and self.reload <= 0:
             arrow = arcade.Sprite('image/arrow.png', 0.2)
@@ -161,14 +175,29 @@ class MyGame(arcade.Window):
             for bullet in wall_hit_list:
                 bullet.kill()
 
+        changed = False
         if self.move_up:
             self.view_bottom += self.player_speed
+            self.player_sprite.center_y += self.player_speed
+            changed = True
         if self.move_down:
             self.view_bottom -= self.player_speed
+            self.player_sprite.center_y -= self.player_speed
+            changed = True
         if self.move_left:
-            self.view_left
+            self.view_left -= self.player_speed
+            self.player_sprite.center_x -= self.player_speed
+            changed = True
+        if self.move_right:
+            self.view_left += self.player_speed
+            self.player_sprite.center_x += self.player_speed
+            changed = True
 
-
+        if changed:
+            arcade.set_viewport(self.view_left,
+                                SCREEN_WIDTH + self.view_left - 1,
+                                self.view_bottom,
+                                SCREEN_HEIGHT + self.view_bottom - 1)
 
 
 def main():
