@@ -52,7 +52,6 @@ class MyGame(arcade.Window):
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         self.map_length = 41
         self.map_width = 30
-        print(len(self.map))
 
         # player sprite
         self.player_sprite = None
@@ -104,20 +103,12 @@ class MyGame(arcade.Window):
         self.player_sprite.center_y = 400
         self.player_list.append(self.player_sprite)
 
-        '''
-        # read the map
-        map = arcade.read_tiled_map("map.tmx", 1)
-        self.wall_list = arcade.generate_sprites(map, 'map', 1)
-        print(self.wall_list)
-        '''
         for i in range(len(self.map)):
             if self.map[i] == 1:
                 wall = arcade.Sprite('image/wall.png', 1)
                 wall.center_x = i % self.map_length * 100 + 50
                 wall.center_y = (len(self.map) - i - 1) // self.map_length * 100 + 50
                 self.wall_list.append(wall)
-                print(i // 10 * 100 + 50)
-                print(i)
 
     def on_mouse_motion(self, x, y, dx, dy):
         if x + self.view_left - self.player_sprite.center_x == 0:
@@ -225,7 +216,6 @@ class MyGame(arcade.Window):
                         physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
             if physics_engine != []:
                 if physics_engine[0].top > self.player_sprite.bottom and physics_engine[0].center_y < self.player_sprite.center_y:
-                    print(physics_engine[0].top, self.player_sprite.bottom)
                     self.player_sprite.bottom = physics_engine[0].top + 1
                 if physics_engine[0].bottom < self.player_sprite.top and physics_engine[0].center_y > self.player_sprite.center_y:
                     self.player_sprite.top = physics_engine[0].bottom - 1
