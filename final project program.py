@@ -1,8 +1,24 @@
 import arcade
+from random import*
 from math import*
 
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 800
+
+
+class AI(arcade.Sprite):
+
+    def __init__(self):
+        super().__init__('image/rouge.png', 0.3)
+        self.speed = 1.5 * 100 / 60   # in tiles per second
+        self.shoot = False
+        self.reload_speed = 0.3 * 60  # in shoots per second
+        self.reload = 0
+        self.hp = 0
+        self.center_x = randint(100, 4000)
+        self.center_y = randint(100, 2900)
+        self.range = 5 * 100
+
 
 
 class MyGame(arcade.Window):
@@ -63,6 +79,7 @@ class MyGame(arcade.Window):
         self.shoot = False
         self.reload_speed = 0.3 * 60  # in shoots per second
         self.reload = 0
+        self.bullet_range = 5 * 100
 
         # manage the view point
         self.view_left = 0
@@ -145,6 +162,11 @@ class MyGame(arcade.Window):
         if key == arcade.key.D:
             self.move_right = True
 
+        if (self.move_up or self.move_down) and (self.move_left or self.move_right):
+            self.player_speed = 1.5 * sqrt(2)/2 * 100 / 60
+        else:
+            self.player_speed = 1.5 * 100 / 60
+
     def on_key_release(self, key, modifiers):
         if key == arcade.key.W:
             self.move_up = False
@@ -154,6 +176,12 @@ class MyGame(arcade.Window):
             self.move_down = False
         if key == arcade.key.D:
             self.move_right = False
+        if self.move_up or self.move_down:
+            if not self.move_left or not self.move_right:
+                self.player_speed = 1.5 * 100 / 60
+        if self.move_left or self.move_right:
+            if not self.move_up or not self.move_down:
+                self.player_speed = 1.5 * 100 / 60
 
     def update(self, delta_time):
 
@@ -165,8 +193,11 @@ class MyGame(arcade.Window):
 
             arrow.angle = self.player_sprite.angle
 
-            arrow.center_x = self.player_sprite.center_x + 10 * cos(radians(arrow.angle))
-            arrow.center_y = self.player_sprite.center_y + 10 * sin(radians(arrow.angle))
+            arrow.origin_x = self.player_sprite.center_x + 10 * cos(radians(arrow.angle))
+            arrow.origin_y = self.player_sprite.center_y + 10 * sin(radians(arrow.angle))
+
+            arrow.center_x = arrow.origin_x
+            arrow.center_y = arrow.origin_y
 
             self.player_bullet_list.append(arrow)
 
@@ -176,6 +207,8 @@ class MyGame(arcade.Window):
         for bullet in self.player_bullet_list:
             bullet.center_x += 15 * cos(radians(bullet.angle))
             bullet.center_y += 15 * sin(radians(bullet.angle))
+            if (round(bullet.center_x - bullet.origin_x))^2 + (round(bullet.center_y - bullet.origin_y))^2 > self.bullet_range^2:
+                bullet.kill()
 
         for wall in self.wall_list:
             wall_hit_list = arcade.check_for_collision_with_list(wall, self.player_bullet_list)
@@ -184,6 +217,9 @@ class MyGame(arcade.Window):
 
         physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
         changed = False
+
+        print(self.player_speed)
+        print(self.move_up, self.move_down, self.move_left, self.move_right)
 
         if self.move_up:
             self.view_bottom += self.player_speed
@@ -207,18 +243,18 @@ class MyGame(arcade.Window):
 
             if self.player_sprite.right - physics_engine[0].left < physics_engine[0].top - self.player_sprite.bottom and self.player_sprite.right - physics_engine[0].left < self.player_sprite.top - physics_engine[0].bottom:
                 if physics_engine[0].left < self.player_sprite.right and physics_engine[0].center_x > self.player_sprite.center_x:
-                    self.player_sprite.right = physics_engine[0].left - 1
+                    self.player_sprite.right = physics_engine[0].left
                     physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
             if physics_engine != []:
                 if physics_engine[0].right - self.player_sprite.left < physics_engine[0].top - self.player_sprite.bottom and physics_engine[0].right - self.player_sprite.left < self.player_sprite.top - physics_engine[0].bottom:
                     if physics_engine[0].right > self.player_sprite.left and physics_engine[0].center_x < self.player_sprite.center_x:
-                        self.player_sprite.left = physics_engine[0].right + 1
+                        self.player_sprite.left = physics_engine[0].right
                         physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
             if physics_engine != []:
                 if physics_engine[0].top > self.player_sprite.bottom and physics_engine[0].center_y < self.player_sprite.center_y:
-                    self.player_sprite.bottom = physics_engine[0].top + 1
+                    self.player_sprite.bottom = physics_engine[0].top
                 if physics_engine[0].bottom < self.player_sprite.top and physics_engine[0].center_y > self.player_sprite.center_y:
-                    self.player_sprite.top = physics_engine[0].bottom - 1
+                    self.player_sprite.top = physics_engine[0].bottom
 
         self.view_left = self.player_sprite.center_x - 500
         self.view_bottom = self.player_sprite.center_y - 400
@@ -228,7 +264,6 @@ class MyGame(arcade.Window):
                                 SCREEN_WIDTH + self.view_left - 1,
                                 self.view_bottom,
                                 SCREEN_HEIGHT + self.view_bottom - 1)
-
 
 
 def main():
