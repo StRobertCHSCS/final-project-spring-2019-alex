@@ -18,7 +18,7 @@ class MyGame(arcade.Window):
         self.enemy_bullet_list = None
         self.wall_list = None
 
-        # map
+        # map, for better view press ctrl + F + 1
         self.map = [
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
@@ -59,9 +59,6 @@ class MyGame(arcade.Window):
 
         # bullet sprite
         self.player_bullet_sprite = None
-
-        # physics engine
-        self.physics_engine = None
 
         # shooting variables
         self.shoot = False
@@ -122,8 +119,6 @@ class MyGame(arcade.Window):
                 print(i // 10 * 100 + 50)
                 print(i)
 
-        self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
-
     def on_mouse_motion(self, x, y, dx, dy):
         if x + self.view_left - self.player_sprite.center_x == 0:
             if y + self.view_bottom > self.player_sprite.center_y:
@@ -173,8 +168,6 @@ class MyGame(arcade.Window):
 
         self.player_list.update()
 
-        self.physics_engine.update()
-
         if self.shoot and self.reload <= 0:
             arrow = arcade.Sprite('image/arrow.png', 0.2)
             self.reload += self.reload_speed
@@ -198,6 +191,7 @@ class MyGame(arcade.Window):
             for bullet in wall_hit_list:
                 bullet.kill()
 
+        physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
         changed = False
         if self.move_up:
             self.view_bottom += self.player_speed
@@ -215,6 +209,55 @@ class MyGame(arcade.Window):
             self.view_left += self.player_speed
             self.player_sprite.center_x += self.player_speed
             changed = True
+
+        if len(physics_engine) > 0:
+            changed = False
+
+            corner = None
+            for i in range(len(physics_engine)):
+                if physics_engine[i].center_x != physics_engine[0].center_x and physics_engine[i].center_y != physics_engine[0].center_y:
+                    corner = physics_engine[i-1]
+
+            if self.player_sprite.right - physics_engine[0].left < physics_engine[0].top - self.player_sprite.bottom and self.player_sprite.right - physics_engine[0].left < self.player_sprite.top - physics_engine[0].bottom:
+                if physics_engine[0].left < self.player_sprite.right and physics_engine[0].center_x > self.player_sprite.center_x:
+                    self.player_sprite.right = physics_engine[0].left - 1
+                    physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
+            if physics_engine != []:
+                if physics_engine[0].right - self.player_sprite.left < physics_engine[0].top - self.player_sprite.bottom and physics_engine[0].right - self.player_sprite.left < self.player_sprite.top - physics_engine[0].bottom:
+                    if physics_engine[0].right > self.player_sprite.left and physics_engine[0].center_x < self.player_sprite.center_x:
+                        self.player_sprite.left = physics_engine[0].right + 1
+                        physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
+            if physics_engine != []:
+                if physics_engine[0].top > self.player_sprite.bottom and physics_engine[0].center_y < self.player_sprite.center_y:
+                    print(physics_engine[0].top, self.player_sprite.bottom)
+                    self.player_sprite.bottom = physics_engine[0].top + 1
+                if physics_engine[0].bottom < self.player_sprite.top and physics_engine[0].center_y > self.player_sprite.center_y:
+                    self.player_sprite.top = physics_engine[0].bottom - 1
+
+            '''
+            if corner == None:
+                if physics_engine[0].center_x == physics_engine[-1].center_x:
+                    print()
+                    print('test')
+                    if physics_engine[0].left < self.player_sprite.right and physics_engine[0].center_x > self.player_sprite.center_x:
+                        self.player_sprite.right = physics_engine[0].left - 1
+                        if physics_engine[0].top > self.player_sprite.bottom and physics_engine[0].center_y < self.player_sprite.center_y:
+                            self.player_sprite.bottom = physics_engine[0].top + 1
+                        if physics_engine[0].bottom < self.player_sprite.top and physics_engine[0].center_y > self.player_sprite.center_y:
+                            self.player_sprite.top = physics_engine[0].bottom - 1
+                    if physics_engine[0].right > self.player_sprite.left and physics_engine[0].center_x < self.player_sprite.center_x:
+                        self.player_sprite.left = physics_engine[0].right + 1
+                        if physics_engine[0].top > self.player_sprite.bottom and physics_engine[0].center_y < self.player_sprite.center_y:
+                            self.player_sprite.bottom = physics_engine[0].top + 1
+                        if physics_engine[0].bottom < self.player_sprite.top and physics_engine[0].center_y > self.player_sprite.center_y:
+                            self.player_sprite.top = physics_engine[0].bottom - 1
+                elif physics_engine[0].center_y == physics_engine[-1].center_y:
+                    if physics_engine[0].top > self.player_sprite.bottom and physics_engine[0].center_y < self.player_sprite.center_y:
+                        self.player_sprite.bottom = physics_engine[0].top + 1
+                    if physics_engine[0].bottom < self.player_sprite.top and physics_engine[0].center_y > self.player_sprite.center_y:
+                        self.player_sprite.top = physics_engine[0].bottom - 1
+                    '''
+
 
         if changed:
             arcade.set_viewport(self.view_left,
