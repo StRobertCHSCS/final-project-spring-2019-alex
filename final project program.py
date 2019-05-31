@@ -14,11 +14,13 @@ class AI(arcade.Sprite):
         self.shoot = False
         self.reload_speed = 0.3 * 60  # in shoots per second
         self.reload = 0
-        self.hp = 0
+        self.max_hp = 100
+        self.hp = 100
         self.center_x = randint(100, 4000)
         self.center_y = randint(100, 2900)
         self.range = 5 * 100
-
+        self.angle_change_restriction = 5 * 60
+        self.turning_restriction = 0.15 * 60
 
 
 class MyGame(arcade.Window):
@@ -37,8 +39,8 @@ class MyGame(arcade.Window):
         # map, for better view press ctrl + F + 1
         self.map = [
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
@@ -50,8 +52,8 @@ class MyGame(arcade.Window):
             1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-            1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+            1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+            1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
@@ -63,8 +65,8 @@ class MyGame(arcade.Window):
             1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         self.map_length = 41
         self.map_width = 30
@@ -120,6 +122,11 @@ class MyGame(arcade.Window):
         self.player_sprite.center_y = 400
         self.player_list.append(self.player_sprite)
 
+        # create AI
+        for i in range(10):
+            bot = AI()
+            self.enemy_list.append(bot)
+
         for i in range(len(self.map)):
             if self.map[i] == 1:
                 wall = arcade.Sprite('image/wall.png', 1)
@@ -143,6 +150,7 @@ class MyGame(arcade.Window):
         self.player_list.draw()
         self.player_bullet_list.draw()
         self.wall_list.draw()
+        self.enemy_list.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
@@ -177,10 +185,10 @@ class MyGame(arcade.Window):
         if key == arcade.key.D:
             self.move_right = False
         if self.move_up or self.move_down:
-            if not self.move_left or not self.move_right:
+            if not self.move_left and not self.move_right:
                 self.player_speed = 1.5 * 100 / 60
         if self.move_left or self.move_right:
-            if not self.move_up or not self.move_down:
+            if not self.move_up and not self.move_down:
                 self.player_speed = 1.5 * 100 / 60
 
     def update(self, delta_time):
@@ -205,8 +213,8 @@ class MyGame(arcade.Window):
             self.reload -= 1
 
         for bullet in self.player_bullet_list:
-            bullet.center_x += 15 * cos(radians(bullet.angle))
-            bullet.center_y += 15 * sin(radians(bullet.angle))
+            bullet.center_x += 10 * cos(radians(bullet.angle)) * 100 / 60
+            bullet.center_y += 10 * sin(radians(bullet.angle)) * 100 / 60
             if (round(bullet.center_x - bullet.origin_x))^2 + (round(bullet.center_y - bullet.origin_y))^2 > self.bullet_range^2:
                 bullet.kill()
 
@@ -217,9 +225,6 @@ class MyGame(arcade.Window):
 
         physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
         changed = False
-
-        print(self.player_speed)
-        print(self.move_up, self.move_down, self.move_left, self.move_right)
 
         if self.move_up:
             self.view_bottom += self.player_speed
@@ -265,6 +270,45 @@ class MyGame(arcade.Window):
                                 self.view_bottom,
                                 SCREEN_HEIGHT + self.view_bottom - 1)
 
+        for enemy in self.enemy_list:
+
+            if enemy.angle_change_restriction <= 0:
+                enemy.angle_change_restriction = 5 * 60
+                angle = randint(0, 360)
+                enemy.angle = angle
+            enemy.angle_change_restriction -= 1
+            if enemy.turning_restriction > 0:
+                enemy.turning_restriction -= 1
+            if enemy.turning_restriction == 1:
+                enemy.angle += randint(-60, 60)
+
+            physics_engine_enemy = arcade.check_for_collision_with_list(enemy, self.wall_list)
+
+            if physics_engine_enemy != []:
+                if enemy.turning_restriction <= 0:
+                    enemy.turning_restriction = 0.15 * 60
+                    enemy.angle = 180 + enemy.angle
+
+            enemy.center_x += enemy.speed * cos(radians(enemy.angle))
+            enemy.center_y += enemy.speed * sin(radians(enemy.angle))
+
+'''
+            if physics_engine_enemy != []:
+                if enemy.right - physics_engine_enemy[0].left < physics_engine_enemy[0].top - enemy.bottom and enemy.right - physics_engine_enemy[0].left < enemy.top - physics_engine_enemy[0].bottom:
+                    if physics_engine_enemy[0].left < enemy.right and physics_engine_enemy[0].center_x > enemy.center_x:
+                        enemy.right = physics_engine_enemy[0].left
+                        physics_engine_enemy = arcade.check_for_collision_with_list(enemy, self.wall_list)
+            if physics_engine_enemy != []:
+                if physics_engine_enemy[0].right - enemy.left < physics_engine_enemy[0].top - enemy.bottom and physics_engine_enemy[0].right - enemy.left < enemy.top - physics_engine_enemy[0].bottom:
+                    if physics_engine_enemy[0].right > enemy.left and physics_engine_enemy[0].center_x < enemy.center_x:
+                        enemy.left = physics_engine_enemy[0].right
+                        physics_engine_enemy = arcade.check_for_collision_with_list(enemy, self.wall_list)
+            if physics_engine_enemy != []:
+                if physics_engine_enemy[0].top > enemy.bottom and physics_engine_enemy[0].center_y < enemy.center_y:
+                    enemy.bottom = physics_engine_enemy[0].top
+                if physics_engine_enemy[0].bottom < enemy.top and physics_engine_enemy[0].center_y > enemy.center_y:
+                    enemy.top = physics_engine_enemy[0].bottom
+'''
 
 def main():
     window = MyGame()
