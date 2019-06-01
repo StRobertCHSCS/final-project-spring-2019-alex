@@ -74,6 +74,9 @@ class MyGame(arcade.Window):
 
         # player sprite
         self.player_sprite = None
+        self.player_hp_bar_sprite = None
+        self.player_hp = 100
+        self.player_hp_max = 100
 
         # bullet sprite
         self.player_bullet_sprite = None
@@ -123,15 +126,7 @@ class MyGame(arcade.Window):
         self.player_sprite.center_x = 500
         self.player_sprite.center_y = 400
         self.player_list.append(self.player_sprite)
-
-        # create AI
-        for i in range(10):
-            bot = AI()
-            self.enemy_list.append(bot)
-            hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1, 1, 1, 99, 4, bot.center_x, bot.top + 5)
-            self.enemy_hp_list.append(hp_bar_sprite)
-
-        print(self.enemy_hp_list)
+        self.player_hp_bar_sprite = arcade.Sprite('image/red_hp_bar.png', 1)
 
         for i in range(len(self.map)):
             if self.map[i] == 1:
@@ -139,6 +134,17 @@ class MyGame(arcade.Window):
                 wall.center_x = i % self.map_length * 100 + 50
                 wall.center_y = (len(self.map) - i - 1) // self.map_length * 100 + 50
                 self.wall_list.append(wall)
+
+        # create AI
+        for i in range(10):
+            bot = AI()
+            hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
+            while hit_list != []:
+                bot = AI()
+                hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
+            self.enemy_list.append(bot)
+            hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1)
+            self.enemy_hp_list.append(hp_bar_sprite)
 
     def on_mouse_motion(self, x, y, dx, dy):
         if x + self.view_left - self.player_sprite.center_x == 0:
@@ -158,6 +164,7 @@ class MyGame(arcade.Window):
         self.wall_list.draw()
         self.enemy_list.draw()
         self.enemy_hp_list.draw()
+        self.player_hp_bar_sprite.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
@@ -280,6 +287,10 @@ class MyGame(arcade.Window):
                                 self.view_bottom,
                                 SCREEN_HEIGHT + self.view_bottom - 1)
 
+        self.player_hp_bar_sprite.width = self.player_hp
+        self.player_hp_bar_sprite.center_x = self.player_sprite.center_x
+        self.player_hp_bar_sprite.center_y = self.player_sprite.top + 5
+
         for enemy in self.enemy_list:
 
             if enemy.angle_change_restriction <= 0:
@@ -296,7 +307,7 @@ class MyGame(arcade.Window):
 
             if physics_engine_enemy != []:
                 if enemy.turning_restriction <= 0:
-                    enemy.turning_restriction = 0.2 * 60
+                    enemy.turning_restriction = 0.5 * 60
                     enemy.angle = 180 + enemy.angle
 
             enemy.center_x += enemy.speed * cos(radians(enemy.angle))
