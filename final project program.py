@@ -35,6 +35,7 @@ class MyGame(arcade.Window):
         self.player_bullet_list = None
         self.enemy_bullet_list = None
         self.wall_list = None
+        self.enemy_hp_list = None
 
         # map, for better view press ctrl + F + 1
         self.map = [
@@ -112,6 +113,7 @@ class MyGame(arcade.Window):
         self.player_bullet_list = arcade.SpriteList()
         self.enemy_bullet_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
+        self.enemy_hp_list = arcade.SpriteList()
 
         # reset the score
         self.score = 0
@@ -126,6 +128,10 @@ class MyGame(arcade.Window):
         for i in range(10):
             bot = AI()
             self.enemy_list.append(bot)
+            hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1, 1, 1, 99, 4, bot.center_x, bot.top + 5)
+            self.enemy_hp_list.append(hp_bar_sprite)
+
+        print(self.enemy_hp_list)
 
         for i in range(len(self.map)):
             if self.map[i] == 1:
@@ -151,10 +157,14 @@ class MyGame(arcade.Window):
         self.player_bullet_list.draw()
         self.wall_list.draw()
         self.enemy_list.draw()
+        self.enemy_hp_list.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
             self.shoot = True
+
+        if button == arcade.MOUSE_BUTTON_RIGHT:
+            self.player_speed = 10
 
     def on_mouse_release(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
@@ -273,7 +283,7 @@ class MyGame(arcade.Window):
         for enemy in self.enemy_list:
 
             if enemy.angle_change_restriction <= 0:
-                enemy.angle_change_restriction = 5 * 60
+                enemy.angle_change_restriction = 10 * 60
                 angle = randint(0, 360)
                 enemy.angle = angle
             enemy.angle_change_restriction -= 1
@@ -286,11 +296,30 @@ class MyGame(arcade.Window):
 
             if physics_engine_enemy != []:
                 if enemy.turning_restriction <= 0:
-                    enemy.turning_restriction = 0.15 * 60
+                    enemy.turning_restriction = 0.2 * 60
                     enemy.angle = 180 + enemy.angle
 
             enemy.center_x += enemy.speed * cos(radians(enemy.angle))
             enemy.center_y += enemy.speed * sin(radians(enemy.angle))
+
+            for i in range(len(self.enemy_hp_list)):
+                self.enemy_hp_list[i].center_x = self.enemy_list[i].center_x
+                self.enemy_hp_list[i].center_y = self.enemy_list[i].top + 5
+            self.enemy_hp_list.update()
+
+            for bullet in self.player_bullet_list:
+                hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
+
+                for enemy in hit_list:
+                    bullet.kill()
+                    enemy.hp -= 10
+                    for i in range(len(self.enemy_list)):
+                        if self.enemy_list[i] == hit_list[0]:
+                            index = i
+                    self.enemy_hp_list[index].width -= 10
+                    if enemy.hp <= 0:
+                        enemy.kill()
+                        self.enemy_hp_list[index].kill()
 
 '''
             if physics_engine_enemy != []:
