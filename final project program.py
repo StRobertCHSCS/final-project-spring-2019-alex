@@ -6,7 +6,7 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 800
 
 
-class AI(arcade.Sprite):
+class Archer(arcade.Sprite):
 
     def __init__(self):
         super().__init__('image/rouge.png', 0.3)
@@ -22,7 +22,6 @@ class AI(arcade.Sprite):
         self.angle_change_restriction = 5 * 60
         self.turning_restriction = 0.15 * 60
         self.bullet_list = arcade.SpriteList()
-        self.target = None
 
     def shooting(self):
         if self.reload <= 0:
@@ -169,10 +168,10 @@ class MyGame(arcade.Window):
 
         # create AI
         for i in range(10):
-            bot = AI()
+            bot = Archer()
             hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
             while hit_list != []:
-                bot = AI()
+                bot = Archer()
                 hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
             self.enemy_list.append(bot)
             hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1)
@@ -327,15 +326,36 @@ class MyGame(arcade.Window):
 
         for enemy in self.enemy_list:
 
-            if enemy.angle_change_restriction <= 0:
+            if -400 <= self.player_sprite.center_x - enemy.center_x <= 400 and -300 <= self.player_sprite.center_y - enemy.center_y <= 300 and enemy.turning_restriction == 0:
+                enemy.shooting()
+                if enemy.center_x - self.player_sprite.center_x == 0:
+                    if enemy.center_y < self.player_sprite.center_y:
+                        enemy.angle = 90
+                    elif enemy.center_y > self.player_sprite.center_y:
+                        enemy.angle = 270
+                elif self.player_sprite.center_x > enemy.center_x:
+                    enemy.angle = degrees(atan((self.player_sprite.center_y - enemy.center_y) / (
+                            self.player_sprite.center_x - enemy.center_x)))
+                else:
+                    enemy.angle = 180 + degrees(atan((self.player_sprite.center_y - enemy.center_y) / (
+                            self.player_sprite.center_x - enemy.center_x)))
+
+            elif enemy.angle_change_restriction <= 0:
                 enemy.angle_change_restriction = 10 * 60
                 angle = randint(0, 360)
                 enemy.angle = angle
+
             enemy.angle_change_restriction -= 1
             if enemy.turning_restriction > 0:
                 enemy.turning_restriction -= 1
             if enemy.turning_restriction == 1:
                 enemy.angle += randint(-60, 60)
+
+            if -300 <= self.player_sprite.center_x - enemy.center_x <= 300 and -200 <= self.player_sprite.center_y - enemy.center_y <= 200 and enemy.turning_restriction == 0:
+                enemy.speed = 0
+
+            else:
+                enemy.speed = 1.5 * 100 / 60
 
             physics_engine_enemy = arcade.check_for_collision_with_list(enemy, self.wall_list)
 
@@ -352,43 +372,28 @@ class MyGame(arcade.Window):
                 self.enemy_hp_list[i].center_y = self.enemy_list[i].top + 5
             self.enemy_hp_list.update()
 
-            for bullet in self.player_bullet_list:
-                hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
-
-                for enemy in hit_list:
-                    bullet.kill()
-                    enemy.hp -= 10
-                    index = 0
-                    for i in range(len(self.enemy_list)):
-                        if self.enemy_list[i] == hit_list[0]:
-                            index = i
-                    self.enemy_hp_list[index].width -= 10
-                    if enemy.hp <= 0:
-                        enemy.kill()
-                        self.enemy_hp_list[index].kill()
-
-            if randint(1, 100) < 5:
-                enemy.shooting()
-
             enemy.shooting_mechanics(self.wall_list)
+            hit_list = arcade.check_for_collision_with_list(self.player_sprite, enemy.bullet_list)
+            for bullet in hit_list:
+                self.player_hp -= 10
+                bullet.kill()
 
-'''
-            if physics_engine_enemy != []:
-                if enemy.right - physics_engine_enemy[0].left < physics_engine_enemy[0].top - enemy.bottom and enemy.right - physics_engine_enemy[0].left < enemy.top - physics_engine_enemy[0].bottom:
-                    if physics_engine_enemy[0].left < enemy.right and physics_engine_enemy[0].center_x > enemy.center_x:
-                        enemy.right = physics_engine_enemy[0].left
-                        physics_engine_enemy = arcade.check_for_collision_with_list(enemy, self.wall_list)
-            if physics_engine_enemy != []:
-                if physics_engine_enemy[0].right - enemy.left < physics_engine_enemy[0].top - enemy.bottom and physics_engine_enemy[0].right - enemy.left < enemy.top - physics_engine_enemy[0].bottom:
-                    if physics_engine_enemy[0].right > enemy.left and physics_engine_enemy[0].center_x < enemy.center_x:
-                        enemy.left = physics_engine_enemy[0].right
-                        physics_engine_enemy = arcade.check_for_collision_with_list(enemy, self.wall_list)
-            if physics_engine_enemy != []:
-                if physics_engine_enemy[0].top > enemy.bottom and physics_engine_enemy[0].center_y < enemy.center_y:
-                    enemy.bottom = physics_engine_enemy[0].top
-                if physics_engine_enemy[0].bottom < enemy.top and physics_engine_enemy[0].center_y > enemy.center_y:
-                    enemy.top = physics_engine_enemy[0].bottom
-'''
+            self.player_hp_bar_sprite.width = self.player_hp / self.player_hp_max * 100
+
+        for bullet in self.player_bullet_list:
+            hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
+
+            for enemy in hit_list:
+                bullet.kill()
+                enemy.hp -= 10
+                index = 0
+                for i in range(len(self.enemy_list)):
+                    if self.enemy_list[i] == hit_list[0]:
+                        index = i
+                self.enemy_hp_list[index].width = enemy.hp / enemy.max_hp * 100
+                if enemy.hp <= 0:
+                    enemy.kill()
+                    self.enemy_hp_list[index].kill()
 
 
 def main():
