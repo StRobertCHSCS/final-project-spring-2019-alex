@@ -21,6 +21,38 @@ class AI(arcade.Sprite):
         self.range = 5 * 100
         self.angle_change_restriction = 5 * 60
         self.turning_restriction = 0.15 * 60
+        self.bullet_list = arcade.SpriteList()
+        self.target = None
+
+    def shooting(self):
+        if self.reload <= 0:
+            arrow = arcade.Sprite('image/arrow.png', 0.2)
+            self.reload += self.reload_speed
+
+            arrow.angle = self.angle
+
+            arrow.origin_x = self.center_x + 10 * cos(radians(arrow.angle))
+            arrow.origin_y = self.center_y + 10 * sin(radians(arrow.angle))
+
+            arrow.center_x = arrow.origin_x
+            arrow.center_y = arrow.origin_y
+
+            self.bullet_list.append(arrow)
+
+    def shooting_mechanics(self, wall_list):
+        if self.reload > 0:
+            self.reload -= 1
+
+        for bullet in self.bullet_list:
+            bullet.center_x += 10 * cos(radians(bullet.angle)) * 100 / 60
+            bullet.center_y += 10 * sin(radians(bullet.angle)) * 100 / 60
+            if (round(bullet.center_x - bullet.origin_x)) ^ 2 + (round(bullet.center_y - bullet.origin_y)) ^ 2 > self.range ^ 2:
+                bullet.kill()
+
+        for wall in wall_list:
+            wall_hit_list = arcade.check_for_collision_with_list(wall, self.bullet_list)
+            for bullet in wall_hit_list:
+                bullet.kill()
 
 
 class MyGame(arcade.Window):
@@ -165,6 +197,8 @@ class MyGame(arcade.Window):
         self.enemy_list.draw()
         self.enemy_hp_list.draw()
         self.player_hp_bar_sprite.draw()
+        for enemy in self.enemy_list:
+            enemy.bullet_list.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
@@ -324,6 +358,7 @@ class MyGame(arcade.Window):
                 for enemy in hit_list:
                     bullet.kill()
                     enemy.hp -= 10
+                    index = 0
                     for i in range(len(self.enemy_list)):
                         if self.enemy_list[i] == hit_list[0]:
                             index = i
@@ -331,6 +366,11 @@ class MyGame(arcade.Window):
                     if enemy.hp <= 0:
                         enemy.kill()
                         self.enemy_hp_list[index].kill()
+
+            if randint(1, 100) < 5:
+                enemy.shooting()
+
+            enemy.shooting_mechanics(self.wall_list)
 
 '''
             if physics_engine_enemy != []:
@@ -349,6 +389,7 @@ class MyGame(arcade.Window):
                 if physics_engine_enemy[0].bottom < enemy.top and physics_engine_enemy[0].center_y > enemy.center_y:
                     enemy.top = physics_engine_enemy[0].bottom
 '''
+
 
 def main():
     window = MyGame()
