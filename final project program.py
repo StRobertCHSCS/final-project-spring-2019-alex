@@ -9,6 +9,8 @@ SCREEN_HEIGHT = 800
 class Archer(arcade.Sprite):
 
     def __init__(self):
+
+        # variables for enemy archers
         super().__init__('image/rouge.png', 0.3)
         self.speed = 1.5 * 100 / 60   # in tiles per second
         self.shoot = False
@@ -27,30 +29,42 @@ class Archer(arcade.Sprite):
         self.lock_on_speed_y = 0
 
     def shooting(self):
+
+        # check for the reload time
         if self.reload <= 0:
+
+            # made a sprite of arrow and reset the reload speed
             arrow = arcade.Sprite('image/arrow.png', 0.2)
             self.reload += self.reload_speed
 
+            # set the angle of the arrow to the angle of the enemy
             arrow.angle = self.angle
 
+            # create the arrow in front of the player
             arrow.origin_x = self.center_x + 10 * cos(radians(arrow.angle))
             arrow.origin_y = self.center_y + 10 * sin(radians(arrow.angle))
 
+            # set the origin coordinate of the arrow
             arrow.center_x = arrow.origin_x
             arrow.center_y = arrow.origin_y
 
+            # append it into the bullet list of the enemy
             self.bullet_list.append(arrow)
 
     def shooting_mechanics(self, wall_list):
+
+        # reduce the reload time
         if self.reload > 0:
             self.reload -= 1
 
+        # make the bullet move based on the speed and angle, and determine if it has reached its range or not
         for bullet in self.bullet_list:
             bullet.center_x += 10 * cos(radians(bullet.angle)) * 100 / 60
             bullet.center_y += 10 * sin(radians(bullet.angle)) * 100 / 60
             if (round(bullet.center_x - bullet.origin_x)) ^ 2 + (round(bullet.center_y - bullet.origin_y)) ^ 2 > self.range ^ 2:
                 bullet.kill()
 
+        # determine if the bullet has hit the wall
         for wall in wall_list:
             wall_hit_list = arcade.check_for_collision_with_list(wall, self.bullet_list)
             for bullet in wall_hit_list:
@@ -60,6 +74,7 @@ class Archer(arcade.Sprite):
 class MyGame(arcade.Window):
 
     def __init__(self):
+
         # initialize the screen
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, 'RPG game')
 
@@ -163,6 +178,7 @@ class MyGame(arcade.Window):
         self.player_list.append(self.player_sprite)
         self.player_hp_bar_sprite = arcade.Sprite('image/red_hp_bar.png', 1)
 
+        # create the wall
         for i in range(len(self.map)):
             if self.map[i] == 1:
                 wall = arcade.Sprite('image/wall.png', 1)
@@ -182,18 +198,26 @@ class MyGame(arcade.Window):
             self.enemy_hp_list.append(hp_bar_sprite)
 
     def on_mouse_motion(self, x, y, dx, dy):
+
+        # check to see if player is still alive
         if self.player_hp > 0:
+
+            # set the angle to 90 or 270 degrees in certain special case
             if x + self.view_left - self.player_sprite.center_x == 0:
                 if y + self.view_bottom > self.player_sprite.center_y:
                     self.player_sprite.angle = 90
                 else:
                     self.player_sprite.angle = 270
+
+            # set the angle based on the position of the mouse icon
             elif x + self.view_left > self.player_sprite.center_x:
                 self.player_sprite.angle = degrees(atan((y + self.view_bottom - self.player_sprite.center_y)/(x + self.view_left - self.player_sprite.center_x)))
             else:
                 self.player_sprite.angle = 180 + degrees(atan((y + self.view_bottom - self.player_sprite.center_y)/(x + self.view_left - self.player_sprite.center_x)))
 
     def on_draw(self):
+
+        # draw everything
         arcade.start_render()
         self.player_list.draw()
         self.player_bullet_list.draw()
@@ -201,10 +225,14 @@ class MyGame(arcade.Window):
         self.enemy_list.draw()
         self.enemy_hp_list.draw()
         self.player_hp_bar_sprite.draw()
+
+        # draw the text of the score
         for enemy in self.enemy_list:
             enemy.bullet_list.draw()
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10 + self.view_left, 10 + self.view_bottom, arcade.color.WHITE, 18)
+
+        # draw the end game screen if the player died
         if self.player_hp <= 0:
             arcade.draw_rectangle_filled(SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + self.view_bottom, 200, 100, arcade.color.BLACK)
             output = f"YOU DIED"
@@ -213,17 +241,24 @@ class MyGame(arcade.Window):
             arcade.draw_text(output, SCREEN_WIDTH / 2 + self.view_left, SCREEN_HEIGHT / 2 - 5 + self.view_bottom, arcade.color.WHITE, 18, 0, align='center', anchor_x='center', anchor_y='top')
 
     def on_mouse_press(self, x, y, button, modifiers):
+
+        # enable shooting
         if button == arcade.MOUSE_BUTTON_LEFT:
             self.shoot = True
 
+        # enable speed mode (NOTE: NOT IN THE FINAL VERSION, IT IS ONLY USED FOR FASTER TESTING)
         if button == arcade.MOUSE_BUTTON_RIGHT:
             self.player_speed = 10
 
     def on_mouse_release(self, x, y, button, modifiers):
+
+        # disable shooting
         if button == arcade.MOUSE_BUTTON_LEFT:
             self.shoot = False
 
     def on_key_press(self, key, modifiers):
+
+        # enable movement
         if key == arcade.key.W:
             self.move_up = True
         if key == arcade.key.A:
@@ -392,7 +427,7 @@ class MyGame(arcade.Window):
                             enemy.speed = 0
                         else:
                             enemy.speed = 1.5 * 100 / 60
-                            enemy.turning_restriction = 0.15 * 60
+                            enemy.turning_restriction = 0.5 * 60
                             enemy.angle = 180 + enemy.angle
                     if -300 <= self.player_sprite.center_x - enemy.center_x <= 300 and -200 <= self.player_sprite.center_y - enemy.center_y <= 200:
                         enemy.lock_on_speed_x *= -1
