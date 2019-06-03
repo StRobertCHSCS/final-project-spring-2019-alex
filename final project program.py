@@ -108,6 +108,7 @@ class MyGame(arcade.Window):
         self.player_hp_bar_sprite = None
         self.player_hp = 100
         self.player_hp_max = 100
+        self.rejuvenate_cooldown = 5 * 60
 
         # bullet sprite
         self.player_bullet_sprite = None
@@ -198,6 +199,8 @@ class MyGame(arcade.Window):
         self.player_hp_bar_sprite.draw()
         for enemy in self.enemy_list:
             enemy.bullet_list.draw()
+        output = f"Score: {self.score}"
+        arcade.draw_text(output, 10 + self.view_left, 10 + self.view_bottom, arcade.color.WHITE, 18)
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
@@ -262,6 +265,9 @@ class MyGame(arcade.Window):
         if self.reload > 0:
             self.reload -= 1
 
+        if self.shoot:
+            self.rejuvenate_cooldown = 5 * 60
+
         for bullet in self.player_bullet_list:
             bullet.center_x += 10 * cos(radians(bullet.angle)) * 100 / 60
             bullet.center_y += 10 * sin(radians(bullet.angle)) * 100 / 60
@@ -324,6 +330,8 @@ class MyGame(arcade.Window):
         self.player_hp_bar_sprite.center_x = self.player_sprite.center_x
         self.player_hp_bar_sprite.center_y = self.player_sprite.top + 5
 
+        in_combat = False
+
         for enemy in self.enemy_list:
 
             if -400 <= self.player_sprite.center_x - enemy.center_x <= 400 and -300 <= self.player_sprite.center_y - enemy.center_y <= 300 and enemy.turning_restriction == 0:
@@ -376,9 +384,20 @@ class MyGame(arcade.Window):
             hit_list = arcade.check_for_collision_with_list(self.player_sprite, enemy.bullet_list)
             for bullet in hit_list:
                 self.player_hp -= 10
+                self.rejuvenate_cooldown = 5 * 60
                 bullet.kill()
 
+            if hit_list != []:
+                in_combat = True
+
             self.player_hp_bar_sprite.width = self.player_hp / self.player_hp_max * 100
+
+        if not self.shoot and not in_combat:
+            self.rejuvenate_cooldown -= 1
+            if self.rejuvenate_cooldown <= 0 and self.player_hp < self.player_hp_max:
+                self.player_hp += 0.5
+            if self.player_hp > self.player_hp_max:
+                self.player_hp = self.player_hp_max
 
         for bullet in self.player_bullet_list:
             hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
@@ -394,6 +413,8 @@ class MyGame(arcade.Window):
                 if enemy.hp <= 0:
                     enemy.kill()
                     self.enemy_hp_list[index].kill()
+                    self.score += 100
+
 
 
 def main():
