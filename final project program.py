@@ -529,11 +529,13 @@ class MyGame(arcade.Window):
                             index = i
                     self.enemy_hp_list[index].width = enemy.hp / enemy.max_hp * 100
 
-                    # kill the enemy if its health drop below 0
+                    # kill the enemy if its health drop below 0 and added points
                     if enemy.hp <= 0:
                         enemy.kill()
                         self.enemy_hp_list[index].kill()
                         self.score += 100
+
+                        # spawn another archer
                         bot = Archer()
                         hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
                         while hit_list != []:
@@ -543,12 +545,11 @@ class MyGame(arcade.Window):
                         hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1)
                         self.enemy_hp_list.append(hp_bar_sprite)
 
-
-
+# main function that calls the game
 def main():
     window = MyGame()
     window.setup()
     arcade.run()
-
-
+    
+# calls the main function to start the game
 main()
