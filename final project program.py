@@ -441,6 +441,14 @@ class MyGame(arcade.Window):
                         enemy.kill()
                         self.enemy_hp_list[index].kill()
                         self.score += 100
+                        bot = Archer()
+                        hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
+                        while hit_list != []:
+                            bot = Archer()
+                            hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
+                        self.enemy_list.append(bot)
+                        hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1)
+                        self.enemy_hp_list.append(hp_bar_sprite)
 
 
 
