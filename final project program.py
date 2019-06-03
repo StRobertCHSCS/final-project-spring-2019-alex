@@ -268,12 +268,15 @@ class MyGame(arcade.Window):
         if key == arcade.key.D:
             self.move_right = True
 
+        # prevent extra speed from pressing 2 keys at once
         if (self.move_up or self.move_down) and (self.move_left or self.move_right):
             self.player_speed = 1.5 * sqrt(2)/2 * 100 / 60
         else:
             self.player_speed = 1.5 * 100 / 60
 
     def on_key_release(self, key, modifiers):
+
+        # disable movement
         if key == arcade.key.W:
             self.move_up = False
         if key == arcade.key.A:
@@ -291,44 +294,59 @@ class MyGame(arcade.Window):
 
     def update(self, delta_time):
 
+        # check if the player is still alive
         if self.player_hp > 0:
 
+            # updated the player's sprite
             self.player_list.update()
 
+            # check to see if the player is going to shoot
             if self.shoot and self.reload <= 0:
+
+                # spawn the arrow and reset the reload speed
                 arrow = arcade.Sprite('image/arrow.png', 0.2)
                 self.reload += self.reload_speed
 
+                # set the angle of the arrow to that of the player
                 arrow.angle = self.player_sprite.angle
 
+                # spawn the arrow in front of the player
                 arrow.origin_x = self.player_sprite.center_x + 10 * cos(radians(arrow.angle))
                 arrow.origin_y = self.player_sprite.center_y + 10 * sin(radians(arrow.angle))
 
+                # set the original coordinates of the arrow
                 arrow.center_x = arrow.origin_x
                 arrow.center_y = arrow.origin_y
 
+                # append the arrow into the bullet list
                 self.player_bullet_list.append(arrow)
 
+            # decrease the reload by 1 every time the method is ran
             if self.reload > 0:
                 self.reload -= 1
 
+            # reset the rejuvenate cooldown if the player shot
             if self.shoot:
                 self.rejuvenate_cooldown = 5 * 60
 
+            # move the bullet based on the angle and the speed, and determined if it has reached its range
             for bullet in self.player_bullet_list:
                 bullet.center_x += 10 * cos(radians(bullet.angle)) * 100 / 60
                 bullet.center_y += 10 * sin(radians(bullet.angle)) * 100 / 60
                 if (round(bullet.center_x - bullet.origin_x))^2 + (round(bullet.center_y - bullet.origin_y))^2 > self.bullet_range^2:
                     bullet.kill()
 
+            # determine if the bullet has hit the wall
             for wall in self.wall_list:
                 wall_hit_list = arcade.check_for_collision_with_list(wall, self.player_bullet_list)
                 for bullet in wall_hit_list:
                     bullet.kill()
 
+            # check with sprite list to see if the player has collide with a wall
             physics_engine = arcade.check_for_collision_with_list(self.player_sprite, self.wall_list)
             changed = False
 
+            # move the player into a new coordinate
             if self.move_up:
                 self.view_bottom += self.player_speed
                 self.player_sprite.center_y += self.player_speed
@@ -346,9 +364,11 @@ class MyGame(arcade.Window):
                 self.player_sprite.center_x += self.player_speed
                 changed = True
 
+            # over-ride the changeing variable if the player hits a wall
             if len(physics_engine) > 0:
                 changed = False
 
+                # reset the coordinates of the player if it collides with a wall
                 if self.player_sprite.right - physics_engine[0].left < physics_engine[0].top - self.player_sprite.bottom and self.player_sprite.right - physics_engine[0].left < self.player_sprite.top - physics_engine[0].bottom:
                     if physics_engine[0].left < self.player_sprite.right and physics_engine[0].center_x > self.player_sprite.center_x:
                         self.player_sprite.right = physics_engine[0].left
@@ -364,24 +384,32 @@ class MyGame(arcade.Window):
                     if physics_engine[0].bottom < self.player_sprite.top and physics_engine[0].center_y > self.player_sprite.center_y:
                         self.player_sprite.top = physics_engine[0].bottom
 
+            # set the new view port boundary
             self.view_left = self.player_sprite.center_x - 500
             self.view_bottom = self.player_sprite.center_y - 400
 
+            # set the new view port
             if changed:
                 arcade.set_viewport(self.view_left,
                                     SCREEN_WIDTH + self.view_left - 1,
                                     self.view_bottom,
                                     SCREEN_HEIGHT + self.view_bottom - 1)
 
+            # set the new length of the health bar based on the hp of player, and reset its coordinate
             self.player_hp_bar_sprite.width = self.player_hp
             self.player_hp_bar_sprite.center_x = self.player_sprite.center_x
             self.player_hp_bar_sprite.center_y = self.player_sprite.top + 5
 
+            # set the the in_combat local variable
             in_combat = False
 
+            # loop through all enemy in the list and to execute certain action
             for enemy in self.enemy_list:
 
+                # determine if the player is in range of the enemy
                 if -400 <= self.player_sprite.center_x - enemy.center_x <= 400 and -300 <= self.player_sprite.center_y - enemy.center_y <= 300 and enemy.turning_restriction == 0:
+
+                    # turn its angle and shot if the player is in range
                     enemy.shooting()
                     if enemy.center_x - self.player_sprite.center_x == 0:
                         if enemy.center_y < self.player_sprite.center_y:
@@ -395,19 +423,24 @@ class MyGame(arcade.Window):
                         enemy.angle = 180 + degrees(atan((self.player_sprite.center_y - enemy.center_y) / (
                                 self.player_sprite.center_x - enemy.center_x)))
 
+                # move at another random angle after a certain time if the player is NOT in range
                 elif enemy.angle_change_restriction <= 0:
                     enemy.angle_change_restriction = 10 * 60
                     angle = randint(0, 360)
                     enemy.angle = angle
 
+                # move at another angle facing the front after hitting a wall
                 enemy.angle_change_restriction -= 1
                 if enemy.turning_restriction > 0:
                     enemy.turning_restriction -= 1
                 if enemy.turning_restriction == 1:
                     enemy.angle += randint(-60, 60)
 
+                # determine if the player is in range enough, so that the enemy will stop enaging and stand still
                 if -300 <= self.player_sprite.center_x - enemy.center_x <= 300 and -200 <= self.player_sprite.center_y - enemy.center_y <= 200 and enemy.turning_restriction == 0:
                     enemy.speed = 0
+
+                    # if the player is not moving, start moving in random motion
                     if not self.move_up and not self.move_down and not self.move_left and not self.move_right and enemy.lock_on_adjustment_cooldown <= 0:
                         enemy.lock_on_speed_x = randrange(-15, 15) / 10 * 100 / 60
                         enemy.lock_on_speed_y = randrange(-15, 15) / 10 * 100 / 60
@@ -416,54 +449,77 @@ class MyGame(arcade.Window):
                     enemy.center_y += enemy.lock_on_speed_y
                     enemy.lock_on_adjustment_cooldown -= 1
 
+                # reset the speed if the player is not in range enough to stand still
                 else:
                     enemy.speed = 1.5 * 100 / 60
 
+                # set up the hit list
                 physics_engine_enemy = arcade.check_for_collision_with_list(enemy, self.wall_list)
 
+                # determine what to execute after hitting a wall
                 if physics_engine_enemy != []:
                     if enemy.turning_restriction <= 0:
+
+                        # stop moving if the enemy is chasing the player and hit a wall
                         if -400 <= self.player_sprite.center_x - enemy.center_x <= 400 and -300 <= self.player_sprite.center_y - enemy.center_y <= 300:
                             enemy.speed = 0
+
+                        # move in the completely opposite direction immediately after hitting a wall
                         else:
                             enemy.speed = 1.5 * 100 / 60
                             enemy.turning_restriction = 0.5 * 60
                             enemy.angle = 180 + enemy.angle
+
+                    # move in the opposite direction if the player is not moving and the enemy is moving in random motion
                     if -300 <= self.player_sprite.center_x - enemy.center_x <= 300 and -200 <= self.player_sprite.center_y - enemy.center_y <= 200:
                         enemy.lock_on_speed_x *= -1
                         enemy.lock_on_speed_y *= -1
                         enemy.lock_on_adjustment_cooldown = 5 * 60
 
+                # move the enemy to a new coordinate
                 enemy.center_x += enemy.speed * cos(radians(enemy.angle))
                 enemy.center_y += enemy.speed * sin(radians(enemy.angle))
 
+                # update the coordinate of the health bar of the enemy
                 for i in range(len(self.enemy_hp_list)):
                     self.enemy_hp_list[i].center_x = self.enemy_list[i].center_x
                     self.enemy_hp_list[i].center_y = self.enemy_list[i].top + 5
                 self.enemy_hp_list.update()
 
+                # call the shooting mechanics of the enemy
                 enemy.shooting_mechanics(self.wall_list)
                 hit_list = arcade.check_for_collision_with_list(self.player_sprite, enemy.bullet_list)
+
+                # deal damage to the player if hit, and reset the rejuvenate cooldown
                 for bullet in hit_list:
                     self.player_hp -= 10
                     self.rejuvenate_cooldown = 5 * 60
                     bullet.kill()
 
+                # set the player's status to be 'in-combat'
                 if hit_list != []:
                     in_combat = True
 
+                # reset the length of the player's health bar
                 self.player_hp_bar_sprite.width = self.player_hp / self.player_hp_max * 100
 
+            # reduce the rejuvenate cooldown if the player is not shooting and in- combat
             if not self.shoot and not in_combat:
                 self.rejuvenate_cooldown -= 1
+
+                # start rejuvenating hp if the cooldown is less than 0
                 if self.rejuvenate_cooldown <= 0 and self.player_hp < self.player_hp_max:
                     self.player_hp += 0.5
+
+                # cap-out the player's hp
                 if self.player_hp > self.player_hp_max:
                     self.player_hp = self.player_hp_max
 
+            # check the bullet shot by player, and see if it has hit any enemy
             for bullet in self.player_bullet_list:
                 hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
 
+                # reduce the enemy's hp if hit, and make coresponding changes to its health bar
                 for enemy in hit_list:
                     bullet.kill()
                     enemy.hp -= 10
@@ -472,6 +528,8 @@ class MyGame(arcade.Window):
                         if self.enemy_list[i] == hit_list[0]:
                             index = i
                     self.enemy_hp_list[index].width = enemy.hp / enemy.max_hp * 100
+
+                    # kill the enemy if its health drop below 0
                     if enemy.hp <= 0:
                         enemy.kill()
                         self.enemy_hp_list[index].kill()
