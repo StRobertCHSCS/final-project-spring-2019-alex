@@ -22,6 +22,9 @@ class Archer(arcade.Sprite):
         self.angle_change_restriction = 5 * 60
         self.turning_restriction = 0.15 * 60
         self.bullet_list = arcade.SpriteList()
+        self.lock_on_adjustment_cooldown = 2 * 60
+        self.lock_on_speed_x = 0
+        self.lock_on_speed_y = 0
 
     def shooting(self):
         if self.reload <= 0:
@@ -361,6 +364,13 @@ class MyGame(arcade.Window):
 
             if -300 <= self.player_sprite.center_x - enemy.center_x <= 300 and -200 <= self.player_sprite.center_y - enemy.center_y <= 200 and enemy.turning_restriction == 0:
                 enemy.speed = 0
+                if not self.move_up and not self.move_down and not self.move_left and not self.move_right and enemy.lock_on_adjustment_cooldown <= 0:
+                    enemy.lock_on_speed_x = randrange(-15, 15) / 10 * 100 / 60
+                    enemy.lock_on_speed_y = randrange(-15, 15) / 10 * 100 / 60
+                    enemy.lock_on_adjustment_cooldown = 3 * 60
+                enemy.center_x += enemy.lock_on_speed_x
+                enemy.center_y += enemy.lock_on_speed_y
+                enemy.lock_on_adjustment_cooldown -= 1
 
             else:
                 enemy.speed = 1.5 * 100 / 60
@@ -369,8 +379,16 @@ class MyGame(arcade.Window):
 
             if physics_engine_enemy != []:
                 if enemy.turning_restriction <= 0:
-                    enemy.turning_restriction = 0.5 * 60
-                    enemy.angle = 180 + enemy.angle
+                    if -400 <= self.player_sprite.center_x - enemy.center_x <= 400 and -300 <= self.player_sprite.center_y - enemy.center_y <= 300:
+                        enemy.speed = 0
+                    else:
+                        enemy.speed = 1.5 * 100 / 60
+                        enemy.turning_restriction = 0.15 * 60
+                        enemy.angle = 180 + enemy.angle
+                if -300 <= self.player_sprite.center_x - enemy.center_x <= 300 and -200 <= self.player_sprite.center_y - enemy.center_y <= 200:
+                    enemy.lock_on_speed_x *= -1
+                    enemy.lock_on_speed_y *= -1
+                    enemy.lock_on_adjustment_cooldown = 5 * 60
 
             enemy.center_x += enemy.speed * cos(radians(enemy.angle))
             enemy.center_y += enemy.speed * sin(radians(enemy.angle))
