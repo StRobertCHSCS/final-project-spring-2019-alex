@@ -27,6 +27,8 @@ class Archer(arcade.Sprite):
         self.lock_on_adjustment_cooldown = 2 * 60
         self.lock_on_speed_x = 0
         self.lock_on_speed_y = 0
+        self.bullet_speed = 10
+        self.damage = 10
 
     def shooting(self):
 
@@ -41,8 +43,8 @@ class Archer(arcade.Sprite):
             arrow.angle = self.angle
 
             # create the arrow in front of the player
-            arrow.origin_x = self.center_x + 10 * cos(radians(arrow.angle))
-            arrow.origin_y = self.center_y + 10 * sin(radians(arrow.angle))
+            arrow.origin_x = self.center_x + self.bullet_speed * cos(radians(arrow.angle))
+            arrow.origin_y = self.center_y + self.bullet_speed * sin(radians(arrow.angle))
 
             # set the origin coordinate of the arrow
             arrow.center_x = arrow.origin_x
@@ -59,8 +61,8 @@ class Archer(arcade.Sprite):
 
         # make the bullet move based on the speed and angle, and determine if it has reached its range or not
         for bullet in self.bullet_list:
-            bullet.center_x += 10 * cos(radians(bullet.angle)) * 100 / 60
-            bullet.center_y += 10 * sin(radians(bullet.angle)) * 100 / 60
+            bullet.center_x += self.bullet_speed * cos(radians(bullet.angle)) * 100 / 60
+            bullet.center_y += self.bullet_speed * sin(radians(bullet.angle)) * 100 / 60
             if (round(bullet.center_x - bullet.origin_x)) ^ 2 + (round(bullet.center_y - bullet.origin_y)) ^ 2 > self.range ^ 2:
                 bullet.kill()
 
@@ -70,6 +72,75 @@ class Archer(arcade.Sprite):
             for bullet in wall_hit_list:
                 bullet.kill()
 
+class Mage(arcade.Sprite):
+
+    def __init__(self):
+
+        # variables for enemy archers
+        super().__init__('image/mage.png', 0.2)
+        self.speed = 1.5 * 100 / 60   # in tiles per second
+        self.shoot = False
+        self.reload_speed = 0.75 * 60  # in shoots per second
+        self.reload = 0
+        self.max_hp = 100
+        self.hp = 100
+        self.center_x = randint(100, 4000)
+        self.center_y = randint(100, 2900)
+        self.range = 7 * 100
+        self.angle_change_restriction = 5 * 60
+        self.turning_restriction = 0.15 * 60
+        self.bullet_list = arcade.SpriteList()
+        self.lock_on_adjustment_cooldown = 2 * 60
+        self.lock_on_speed_x = 0
+        self.lock_on_speed_y = 0
+        self.bullet_speed = 6
+        self.damage = 35
+
+    def shooting(self):
+
+        # check for the reload time
+        if self.reload <= 0:
+
+            # made a sprite of arrow and reset the reload speed
+            arrow = arcade.Sprite('image/fireball.png', 0.35)
+            angle_change = 0
+            while angle_change == 0:
+                angle_change = randrange(-10, 10)
+            self.angle += angle_change
+            self.reload += self.reload_speed
+
+            # set the angle of the arrow to the angle of the enemy
+            arrow.angle = self.angle
+
+            # create the arrow in front of the player
+            arrow.origin_x = self.center_x + self.bullet_speed * cos(radians(arrow.angle))
+            arrow.origin_y = self.center_y + self.bullet_speed * sin(radians(arrow.angle))
+
+            # set the origin coordinate of the arrow
+            arrow.center_x = arrow.origin_x
+            arrow.center_y = arrow.origin_y
+
+            # append it into the bullet list of the enemy
+            self.bullet_list.append(arrow)
+
+    def shooting_mechanics(self, wall_list):
+
+        # reduce the reload time
+        if self.reload > 0:
+            self.reload -= 1
+
+        # make the bullet move based on the speed and angle, and determine if it has reached its range or not
+        for bullet in self.bullet_list:
+            bullet.center_x += self.bullet_speed * cos(radians(bullet.angle)) * 100 / 60
+            bullet.center_y += self.bullet_speed * sin(radians(bullet.angle)) * 100 / 60
+            if (round(bullet.center_x - bullet.origin_x)) ^ 2 + (round(bullet.center_y - bullet.origin_y)) ^ 2 > self.range ^ 2:
+                bullet.kill()
+
+        # determine if the bullet has hit the wall
+        for wall in wall_list:
+            wall_hit_list = arcade.check_for_collision_with_list(wall, self.bullet_list)
+            for bullet in wall_hit_list:
+                bullet.kill()
 
 class MyGame(arcade.Window):
 
@@ -188,10 +259,10 @@ class MyGame(arcade.Window):
 
         # create AI
         for i in range(10):
-            bot = Archer()
+            bot = Mage()
             hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
             while hit_list != []:
-                bot = Archer()
+                bot = Mage()
                 hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
             self.enemy_list.append(bot)
             hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1)
@@ -492,7 +563,7 @@ class MyGame(arcade.Window):
 
                 # deal damage to the player if hit, and reset the rejuvenate cooldown
                 for bullet in hit_list:
-                    self.player_hp -= 10
+                    self.player_hp -= enemy.damage
                     self.rejuvenate_cooldown = 5 * 60
                     bullet.kill()
 
@@ -550,6 +621,6 @@ def main():
     window = MyGame()
     window.setup()
     arcade.run()
-    
+
 # calls the main function to start the game
 main()
