@@ -72,6 +72,7 @@ class Archer(arcade.Sprite):
             for bullet in wall_hit_list:
                 bullet.kill()
 
+
 class Mage(arcade.Sprite):
 
     def __init__(self):
@@ -141,6 +142,7 @@ class Mage(arcade.Sprite):
             wall_hit_list = arcade.check_for_collision_with_list(wall, self.bullet_list)
             for bullet in wall_hit_list:
                 bullet.kill()
+
 
 class MyGame(arcade.Window):
 
@@ -295,7 +297,7 @@ class MyGame(arcade.Window):
         for i in range(10):
             bot = Mage()
             hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
-            while hit_list != []:
+            while hit_list != [] or self.view_left <= bot.center_x <= self.view_left + SCREEN_WIDTH or self.view_bottom <= bot.center_y <= self.view_bottom + SCREEN_HEIGHT:
                 bot = Mage()
                 hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
             self.enemy_list.append(bot)
@@ -643,7 +645,7 @@ class MyGame(arcade.Window):
                         # spawn another archer
                         bot = Archer()
                         hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
-                        while hit_list != []:
+                        while hit_list != [] or self.view_left <= bot.center_x <= self.view_left + SCREEN_WIDTH or self.view_bottom <= bot.center_y <= self.view_bottom + SCREEN_HEIGHT:
                             bot = Archer()
                             hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
                         self.enemy_list.append(bot)
