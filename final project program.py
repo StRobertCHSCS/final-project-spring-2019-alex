@@ -258,6 +258,11 @@ class MyGame(arcade.Window):
         self.move_right = False
         self.move_left = False
 
+        # game state variable
+        self.game_state = 1
+        self.archer = None
+        self.mage = None
+
     def setup(self):
 
         # set background color
@@ -313,7 +318,7 @@ class MyGame(arcade.Window):
     def on_mouse_motion(self, x, y, dx, dy):
 
         # check to see if player is still alive
-        if self.player_hp > 0:
+        if self.player_hp > 0 and self.game_state == 2:
 
             # set the angle to 90 or 270 degrees in certain special case
             if x + self.view_left - self.player_sprite.center_x == 0:
@@ -330,38 +335,56 @@ class MyGame(arcade.Window):
 
     def on_draw(self):
 
-        # draw everything
-        arcade.start_render()
-        self.player_list.draw()
-        self.player_bullet_list.draw()
-        self.wall_list.draw()
-        self.enemy_list.draw()
-        self.enemy_hp_list.draw()
-        self.player_hp_bar_sprite.draw()
+        if self.game_state == 1:
+            self.archer = Archer()
+            self.archer.center_x = SCREEN_WIDTH / 3
+            self.archer.center_y = SCREEN_HEIGHT / 2
+            self.mage = Mage()
+            self.mage.center_x = SCREEN_WIDTH / 3 * 2
+            self.mage.center_y = SCREEN_HEIGHT / 2
+            self.archer.draw()
+            self.mage.draw()
 
-        # draw the text of the score
-        for enemy in self.enemy_list:
-            enemy.bullet_list.draw()
-        output = f"Score: {self.score}"
-        arcade.draw_text(output, 10 + self.view_left, 10 + self.view_bottom, arcade.color.WHITE, 18)
+        if self.game_state == 2:
+            # draw everything
+            arcade.start_render()
+            self.player_list.draw()
+            self.player_bullet_list.draw()
+            self.wall_list.draw()
+            self.enemy_list.draw()
+            self.enemy_hp_list.draw()
+            self.player_hp_bar_sprite.draw()
 
-        # draw the end game screen if the player died
-        if self.player_hp <= 0:
-            arcade.draw_rectangle_filled(SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + self.view_bottom, 200, 100, arcade.color.BLACK)
-            output = f"YOU DIED"
-            arcade.draw_text(output, SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + self.view_bottom, arcade.color.WHITE, 32, 0, align='center', anchor_x='center', anchor_y='bottom')
-            output = f'Score: {self.score}'
-            arcade.draw_text(output, SCREEN_WIDTH / 2 + self.view_left, SCREEN_HEIGHT / 2 - 5 + self.view_bottom, arcade.color.WHITE, 18, 0, align='center', anchor_x='center', anchor_y='top')
+            # draw the text of the score
+            for enemy in self.enemy_list:
+                enemy.bullet_list.draw()
+            output = f"Score: {self.score}"
+            arcade.draw_text(output, 10 + self.view_left, 10 + self.view_bottom, arcade.color.WHITE, 18)
+
+            # draw the end game screen if the player died
+            if self.player_hp <= 0:
+                arcade.draw_rectangle_filled(SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + self.view_bottom, 200, 100, arcade.color.BLACK)
+                output = f"YOU DIED"
+                arcade.draw_text(output, SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + self.view_bottom, arcade.color.WHITE, 32, 0, align='center', anchor_x='center', anchor_y='bottom')
+                output = f'Score: {self.score}'
+                arcade.draw_text(output, SCREEN_WIDTH / 2 + self.view_left, SCREEN_HEIGHT / 2 - 5 + self.view_bottom, arcade.color.WHITE, 18, 0, align='center', anchor_x='center', anchor_y='top')
 
     def on_mouse_press(self, x, y, button, modifiers):
 
-        # enable shooting
-        if button == arcade.MOUSE_BUTTON_LEFT:
-            self.shoot = True
+        if self.game_state == 1:
+            if self.archer.left <= x <= self.archer.right and self.archer.bottom <= y <= self.archer.top:
+                self.game_state = 2
+            if self.mage.left <= x <= self.mage.right and self.mage.bottom <= y <= self.mage.top:
+                self.game_state = 2
 
-        # enable speed mode (NOTE: NOT IN THE FINAL VERSION, IT IS ONLY USED FOR FASTER TESTING)
-        if button == arcade.MOUSE_BUTTON_RIGHT:
-            self.player_speed = 10
+        if self.game_state == 2:
+            # enable shooting
+            if button == arcade.MOUSE_BUTTON_LEFT:
+                self.shoot = True
+
+            # enable speed mode (NOTE: NOT IN THE FINAL VERSION, IT IS ONLY USED FOR FASTER TESTING)
+            if button == arcade.MOUSE_BUTTON_RIGHT:
+                self.player_speed = 10
 
     def on_mouse_release(self, x, y, button, modifiers):
 
@@ -407,8 +430,13 @@ class MyGame(arcade.Window):
 
     def update(self, delta_time):
 
+        if self.game_state == 1:
+            arcade.draw_text('Choose your hero', SCREEN_WIDTH/2, 600, arcade.color.WHITE, 36, anchor_x='center')
+            arcade.draw_text('archer', SCREEN_WIDTH / 3, SCREEN_HEIGHT / 2 - 70,  arcade.color.WHITE, 18, anchor_x='center')
+            arcade.draw_text('mage', SCREEN_WIDTH / 3 * 2, SCREEN_HEIGHT / 2 - 70, arcade.color.WHITE, 18, anchor_x='center')
+
         # check if the player is still alive
-        if self.player_hp > 0:
+        if self.player_hp > 0 and self.game_state == 2:
 
             # updated the player's sprite
             self.player_list.update()
