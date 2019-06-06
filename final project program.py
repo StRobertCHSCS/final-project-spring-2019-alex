@@ -63,7 +63,7 @@ class Archer(arcade.Sprite):
         for bullet in self.bullet_list:
             bullet.center_x += self.bullet_speed * cos(radians(bullet.angle)) * 100 / 60
             bullet.center_y += self.bullet_speed * sin(radians(bullet.angle)) * 100 / 60
-            if (round(bullet.center_x - bullet.origin_x)) ^ 2 + (round(bullet.center_y - bullet.origin_y)) ^ 2 > self.range ^ 2:
+            if (round(bullet.center_x - bullet.origin_x)) ** 2 + (round(bullet.center_y - bullet.origin_y)) ** 2 > self.range ** 2:
                 bullet.kill()
 
         # determine if the bullet has hit the wall
@@ -134,7 +134,7 @@ class Mage(arcade.Sprite):
         for bullet in self.bullet_list:
             bullet.center_x += self.bullet_speed * cos(radians(bullet.angle)) * 100 / 60
             bullet.center_y += self.bullet_speed * sin(radians(bullet.angle)) * 100 / 60
-            if (round(bullet.center_x - bullet.origin_x)) ^ 2 + (round(bullet.center_y - bullet.origin_y)) ^ 2 > self.range ^ 2:
+            if (round(bullet.center_x - bullet.origin_x)) ** 2 + (round(bullet.center_y - bullet.origin_y)) ** 2 > self.range ** 2:
                 bullet.kill()
 
         # determine if the bullet has hit the wall
@@ -295,10 +295,16 @@ class MyGame(arcade.Window):
 
         # create AI
         for i in range(10):
-            bot = Mage()
+            if randint(0, 2) == 0:
+                bot = Archer()
+            else:
+                bot = Mage()
             hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
             while hit_list != [] or self.view_left <= bot.center_x <= self.view_left + SCREEN_WIDTH or self.view_bottom <= bot.center_y <= self.view_bottom + SCREEN_HEIGHT:
-                bot = Mage()
+                if randint(0, 2) == 0:
+                    bot = Archer()
+                else:
+                    bot = Mage()
                 hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
             self.enemy_list.append(bot)
             hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1)
@@ -440,7 +446,7 @@ class MyGame(arcade.Window):
             for bullet in self.player_bullet_list:
                 bullet.center_x += 10 * cos(radians(bullet.angle)) * 100 / 60
                 bullet.center_y += 10 * sin(radians(bullet.angle)) * 100 / 60
-                if (round(bullet.center_x - bullet.origin_x))^2 + (round(bullet.center_y - bullet.origin_y))^2 > self.bullet_range^2:
+                if (round(bullet.center_x - bullet.origin_x)) ** 2 + (round(bullet.center_y - bullet.origin_y)) ** 2 > self.bullet_range ** 2:
                     bullet.kill()
 
             # determine if the bullet has hit the wall
@@ -642,11 +648,17 @@ class MyGame(arcade.Window):
                         self.enemy_hp_list[index].kill()
                         self.score += 100
 
-                        # spawn another archer
-                        bot = Archer()
+                        # spawn another enemy
+                        if randint(0, 2) == 0:
+                            bot = Archer()
+                        else:
+                            bot = Mage()
                         hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
                         while hit_list != [] or self.view_left <= bot.center_x <= self.view_left + SCREEN_WIDTH or self.view_bottom <= bot.center_y <= self.view_bottom + SCREEN_HEIGHT:
-                            bot = Archer()
+                            if randint(0, 2) == 0:
+                                bot = Archer()
+                            else:
+                                bot = Mage()
                             hit_list = arcade.check_for_collision_with_list(bot, self.wall_list)
                         self.enemy_list.append(bot)
                         hp_bar_sprite = arcade.Sprite('image/hp_bar.png', 1)
