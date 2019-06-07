@@ -234,6 +234,8 @@ class MyGame(arcade.Window):
         self.player_hp = 100
         self.player_hp_max = 100
         self.rejuvenate_cooldown = 5 * 60
+        self.damage = 0
+        self.player_hero = None
 
         # bullet sprite
         self.player_bullet_sprite = None
@@ -243,6 +245,8 @@ class MyGame(arcade.Window):
         self.reload_speed = 0.3 * 60  # in shoots per second
         self.reload = 0
         self.bullet_range = 5 * 100
+        self.bullet_speed = 0
+        self.bullet_sprite = None
 
         # manage the view point
         self.view_left = 0
@@ -282,13 +286,6 @@ class MyGame(arcade.Window):
 
         # reset the score
         self.score = 0
-
-        # create the player
-        self.player_sprite = arcade.Sprite('image/rouge.png', 0.3)
-        self.player_sprite.center_x = 500
-        self.player_sprite.center_y = 400
-        self.player_list.append(self.player_sprite)
-        self.player_hp_bar_sprite = arcade.Sprite('image/red_hp_bar.png', 1)
 
         # create the wall
         for i in range(len(self.map)):
@@ -373,10 +370,31 @@ class MyGame(arcade.Window):
 
         if self.game_state == 1:
             if self.archer.left <= x <= self.archer.right and self.archer.bottom <= y <= self.archer.top:
+                self.player_hero = 'archer'
+                self.bullet_range = 8 * 100
+                self.bullet_speed = 10
+                self.damage = 10
+                self.reload_speed = 0.3 * 60
+                self.bullet_sprite = arcade.Sprite('image/arrow.png', 0.2)
+                self.player_sprite = arcade.Sprite('image/rouge.png', 0.3)
+                self.player_sprite.center_x = 500
+                self.player_sprite.center_y = 400
+                self.player_list.append(self.player_sprite)
+                self.player_hp_bar_sprite = arcade.Sprite('image/red_hp_bar.png', 1)
                 self.game_state = 2
             if self.mage.left <= x <= self.mage.right and self.mage.bottom <= y <= self.mage.top:
+                self.player_hero = 'mage'
+                self.bullet_range = 5 * 100
+                self.bullet_speed = 5
+                self.damage = 25
+                self.reload_speed = 0.75 * 60
+                self.bullet_sprite = arcade.Sprite('image/fireball.png', 0.35)
+                self.player_sprite = arcade.Sprite('image/mage.png', 0.2)
+                self.player_sprite.center_x = 500
+                self.player_sprite.center_y = 400
+                self.player_list.append(self.player_sprite)
+                self.player_hp_bar_sprite = arcade.Sprite('image/red_hp_bar.png', 1)
                 self.game_state = 2
-
         if self.game_state == 2:
             # enable shooting
             if button == arcade.MOUSE_BUTTON_LEFT:
@@ -445,7 +463,10 @@ class MyGame(arcade.Window):
             if self.shoot and self.reload <= 0:
 
                 # spawn the arrow and reset the reload speed
-                arrow = arcade.Sprite('image/arrow.png', 0.2)
+                if self.player_hero == 'archer':
+                    arrow = arcade.Sprite('image/arrow.png', 0.2)
+                else:
+                    arrow = arcade.Sprite('image/fireball.png', 0.35)
                 self.reload += self.reload_speed
 
                 # set the angle of the arrow to that of the player
@@ -472,8 +493,8 @@ class MyGame(arcade.Window):
 
             # move the bullet based on the angle and the speed, and determined if it has reached its range
             for bullet in self.player_bullet_list:
-                bullet.center_x += 10 * cos(radians(bullet.angle)) * 100 / 60
-                bullet.center_y += 10 * sin(radians(bullet.angle)) * 100 / 60
+                bullet.center_x += self.bullet_speed * cos(radians(bullet.angle)) * 100 / 60
+                bullet.center_y += self.bullet_speed * sin(radians(bullet.angle)) * 100 / 60
                 if (round(bullet.center_x - bullet.origin_x)) ** 2 + (round(bullet.center_y - bullet.origin_y)) ** 2 > self.bullet_range ** 2:
                     bullet.kill()
 
@@ -663,7 +684,7 @@ class MyGame(arcade.Window):
                 # reduce the enemy's hp if hit, and make coresponding changes to its health bar
                 for enemy in hit_list:
                     bullet.kill()
-                    enemy.hp -= 10
+                    enemy.hp -= self.damage
                     index = 0
                     for i in range(len(self.enemy_list)):
                         if self.enemy_list[i] == hit_list[0]:
