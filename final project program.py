@@ -631,6 +631,21 @@ class MyGame(arcade.Window):
                             enemy.speed = 1.5 * 100 / 60
                             enemy.turning_restriction = 0.5 * 60
                             enemy.angle = 180 + enemy.angle
+                            if physics_engine != []:
+                                if enemy.right - physics_engine[0].left < physics_engine[0].top - enemy.bottom and enemy.right - physics_engine[0].left < enemy.top - physics_engine[0].bottom:
+                                    if physics_engine[0].left < enemy.right and physics_engine[0].center_x > enemy.center_x:
+                                        enemy.right = physics_engine[0].left
+                                        physics_engine = arcade.check_for_collision_with_list(enemy, self.wall_list)
+                            if physics_engine != []:
+                                if physics_engine[0].right - enemy.left < physics_engine[0].top - enemy.bottom and physics_engine[0].right - enemy.left < enemy.top - physics_engine[0].bottom:
+                                    if physics_engine[0].right > enemy.left and physics_engine[0].center_x < enemy.center_x:
+                                        enemy.left = physics_engine[0].right
+                                        physics_engine = arcade.check_for_collision_with_list(enemy, self.wall_list)
+                            if physics_engine != []:
+                                if physics_engine[0].top > enemy.bottom and physics_engine[0].center_y < enemy.center_y:
+                                    enemy.bottom = physics_engine[0].top
+                                if physics_engine[0].bottom < enemy.top and physics_engine[0].center_y > enemy.center_y:
+                                    enemy.top = physics_engine[0].bottom
 
                     # move in the opposite direction if the player is not moving and the enemy is moving in random motion
                     if -300 <= self.player_sprite.center_x - enemy.center_x <= 300 and -200 <= self.player_sprite.center_y - enemy.center_y <= 200:
