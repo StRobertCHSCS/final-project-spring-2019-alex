@@ -284,8 +284,14 @@ class MyGame(arcade.Window):
         self.wall_list = arcade.SpriteList()
         self.enemy_hp_list = arcade.SpriteList()
 
-        # reset the score
+        # reset everything
         self.score = 0
+        self.player_hp = 100
+        self.game_state = 1
+        arcade.set_viewport(self.view_left,
+                            SCREEN_WIDTH + self.view_left - 1,
+                            self.view_bottom,
+                            SCREEN_HEIGHT + self.view_bottom - 1)
 
         # create the wall
         for i in range(len(self.map)):
@@ -332,6 +338,8 @@ class MyGame(arcade.Window):
 
     def on_draw(self):
 
+        arcade.start_render()
+
         if self.game_state == 1:
             self.archer = Archer()
             self.archer.center_x = SCREEN_WIDTH / 3
@@ -341,10 +349,13 @@ class MyGame(arcade.Window):
             self.mage.center_y = SCREEN_HEIGHT / 2
             self.archer.draw()
             self.mage.draw()
+            arcade.draw_text('Choose your hero', SCREEN_WIDTH/2, 600, arcade.color.WHITE, 36, anchor_x='center')
+            arcade.draw_text('archer', SCREEN_WIDTH / 3, SCREEN_HEIGHT / 2 - 70,  arcade.color.WHITE, 18, anchor_x='center')
+            arcade.draw_text('mage', SCREEN_WIDTH / 3 * 2, SCREEN_HEIGHT / 2 - 70, arcade.color.WHITE, 18, anchor_x='center')
+
 
         if self.game_state == 2:
             # draw everything
-            arcade.start_render()
             self.player_list.draw()
             self.player_bullet_list.draw()
             self.wall_list.draw()
@@ -360,11 +371,13 @@ class MyGame(arcade.Window):
 
             # draw the end game screen if the player died
             if self.player_hp <= 0:
-                arcade.draw_rectangle_filled(SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + self.view_bottom, 200, 100, arcade.color.BLACK)
+                arcade.draw_rectangle_filled(SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + self.view_bottom, 300, 100, arcade.color.BLACK)
                 output = f"YOU DIED"
-                arcade.draw_text(output, SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + self.view_bottom, arcade.color.WHITE, 32, 0, align='center', anchor_x='center', anchor_y='bottom')
+                arcade.draw_text(output, SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 + 5 + self.view_bottom, arcade.color.WHITE, 32, 0, align='center', anchor_x='center', anchor_y='bottom')
                 output = f'Score: {self.score}'
-                arcade.draw_text(output, SCREEN_WIDTH / 2 + self.view_left, SCREEN_HEIGHT / 2 - 5 + self.view_bottom, arcade.color.WHITE, 18, 0, align='center', anchor_x='center', anchor_y='top')
+                arcade.draw_text(output, SCREEN_WIDTH / 2 + self.view_left, SCREEN_HEIGHT / 2 + self.view_bottom, arcade.color.WHITE, 18, 0, align='center', anchor_x='center', anchor_y='top')
+                output = f'Click anywhere to restart'
+                arcade.draw_text(output, SCREEN_WIDTH/2 + self.view_left, SCREEN_HEIGHT/2 - 35 + self.view_bottom, arcade.color.WHITE, 18, 0, align='center', anchor_x='center', anchor_y='bottom')
 
     def on_mouse_press(self, x, y, button, modifiers):
 
@@ -399,6 +412,9 @@ class MyGame(arcade.Window):
             # enable shooting
             if button == arcade.MOUSE_BUTTON_LEFT:
                 self.shoot = True
+                if self.player_hp <= 0:
+                    self.player_hp_bar_sprite.kill()
+                    self.setup()
 
             # enable speed mode (NOTE: NOT IN THE FINAL VERSION, IT IS ONLY USED FOR FASTER TESTING)
             if button == arcade.MOUSE_BUTTON_RIGHT:
@@ -447,11 +463,6 @@ class MyGame(arcade.Window):
                 self.player_speed = 1.5 * 100 / 60
 
     def update(self, delta_time):
-
-        if self.game_state == 1:
-            arcade.draw_text('Choose your hero', SCREEN_WIDTH/2, 600, arcade.color.WHITE, 36, anchor_x='center')
-            arcade.draw_text('archer', SCREEN_WIDTH / 3, SCREEN_HEIGHT / 2 - 70,  arcade.color.WHITE, 18, anchor_x='center')
-            arcade.draw_text('mage', SCREEN_WIDTH / 3 * 2, SCREEN_HEIGHT / 2 - 70, arcade.color.WHITE, 18, anchor_x='center')
 
         # check if the player is still alive
         if self.player_hp > 0 and self.game_state == 2:
