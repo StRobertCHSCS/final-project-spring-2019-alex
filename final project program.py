@@ -322,7 +322,6 @@ class MyGame(arcade.Window):
 
         # check to see if player is still alive
         if self.player_hp > 0 and self.game_state == 2:
-        if self.player_hp > 0 and self.game_state == 2:
 
             # set the angle to 90 or 270 degrees in certain special case
             if x + self.view_left - self.player_sprite.center_x == 0:
