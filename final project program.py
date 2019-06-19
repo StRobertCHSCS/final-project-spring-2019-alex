@@ -322,6 +322,7 @@ class MyGame(arcade.Window):
 
         # check to see if player is still alive
         if self.player_hp > 0 and self.game_state == 2:
+        if self.player_hp > 0 and self.game_state == 2:
 
             # set the angle to 90 or 270 degrees in certain special case
             if x + self.view_left - self.player_sprite.center_x == 0:
@@ -352,7 +353,6 @@ class MyGame(arcade.Window):
             arcade.draw_text('Choose your hero', SCREEN_WIDTH/2, 600, arcade.color.WHITE, 36, anchor_x='center')
             arcade.draw_text('archer', SCREEN_WIDTH / 3, SCREEN_HEIGHT / 2 - 70,  arcade.color.WHITE, 18, anchor_x='center')
             arcade.draw_text('mage', SCREEN_WIDTH / 3 * 2, SCREEN_HEIGHT / 2 - 70, arcade.color.WHITE, 18, anchor_x='center')
-
 
         if self.game_state == 2:
             # draw everything
@@ -416,9 +416,6 @@ class MyGame(arcade.Window):
                     self.player_hp_bar_sprite.kill()
                     self.setup()
 
-            # enable speed mode (NOTE: NOT IN THE FINAL VERSION, IT IS ONLY USED FOR FASTER TESTING)
-            if button == arcade.MOUSE_BUTTON_RIGHT:
-                self.player_speed = 10
 
     def on_mouse_release(self, x, y, button, modifiers):
 
