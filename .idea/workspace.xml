@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="09ece2e0-0a30-4082-bb3d-73e5176345bf" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/image/enemy.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/image/enemy_attack.png" beforeDir="false" />
-    </list>
+    <list default="true" id="09ece2e0-0a30-4082-bb3d-73e5176345bf" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,8 +13,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/final project program.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="207">
-              <caret line="416" selection-start-line="416" selection-end-line="416" />
+            <state relative-caret-position="-4291">
+              <caret line="418" column="56" lean-forward="true" selection-start-line="418" selection-start-column="56" selection-end-line="418" selection-end-column="56" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -184,7 +180,8 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1381" height="895" extended-state="6" />
+    <frame x="-7" y="-7" width="1381" height="895" extended-state="7" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4986945" visible="true" weight="0.20341499" />
       <window_info id="Structure" order="1" sideWeight="0.4986945" weight="0.11432814" />
@@ -197,7 +194,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.4988864" visible="true" weight="0.22845954" />
+      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.4988864" weight="0.22845954" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5011136" side_tool="true" weight="0.31462142" />
       <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -236,8 +233,8 @@
     <entry file="file://$PROJECT_DIR$/image/enemy.png" />
     <entry file="file://$PROJECT_DIR$/final project program.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="207">
-          <caret line="416" selection-start-line="416" selection-end-line="416" />
+        <state relative-caret-position="-4291">
+          <caret line="418" column="56" lean-forward="true" selection-start-line="418" selection-start-column="56" selection-end-line="418" selection-end-column="56" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
